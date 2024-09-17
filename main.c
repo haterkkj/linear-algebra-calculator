@@ -58,81 +58,42 @@ void printaMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
     }
 }
 
-// void determinaBase(int linhas, int colunas, double matriz[linhas][colunas]){
-//     int novasColunas = colunas;
-//     if(colunas >= 3){
-//         novasColunas = 5;
-//     }
+void determinaSeEhBase(int linhas, int colunas, double det, double matriz[linhas][colunas]){
+    printf("A matriz:\n");
+    printaMatriz(linhas, colunas, matriz);
+    if(det != 0){
+        printf("É base.");
+    } else {
+        printf("Não é base.");
+    }
+}
 
-//     double novaMatriz[linhas][novasColunas];
-//     for(int i = 0; i < linhas; i++){
-//         int idx = 0;
-//         for(int j = 0; j < novasColunas; j++){
-//             novaMatriz[i][j] = matriz[i][idx];
-//             idx++;
-//             if(idx==colunas-1){
-//                 idx = 0;
-//             }
-//         }
-//     }
-
-//     double partePositiva[linhas];
-//     int idx = 0;
-//     for(int i = 0; i < linhas; i++){
-//         partePositiva[i] = 1;
-//         for(int j = i; j < colunas; j++){
-//             if(idx >= novasColunas-1){
-//                 idx-=colunas;
-//                 if(novasColunas==colunas){
-//                     break;
-//                 }
-//             }
-//             partePositiva[i]*=novaMatriz[i][idx];
-//             idx++;
-//         }
-//         idx++;
-//     }
-
-//     double parteNegativa[linhas];
-//     idx = novasColunas-1;
-//     int posPn = 0;
-//     for(int i = linhas-1; i >= 0; i--){
-//         parteNegativa[posPn] = 1;
-//         for(int j = i; j >= 0; j--){
-//             if(idx < 0){
-//                 idx+=colunas;
-//                 if(novasColunas==colunas){
-//                     parteNegativa[posPn]*=novaMatriz[i][idx];
-//                     break;
-//                 }
-//             }
-//             parteNegativa[posPn]*=novaMatriz[i][idx];
-//             idx--;
-//         }
-//         //printf("%d\n\n", idx);
-//         posPn++;
-//         idx--;
-//     }
-//     double pos=0, neg=0;
-//     for(int i = 0; i < linhas; i++){
-//         pos+=partePositiva[i];
-//         neg+=parteNegativa[i];
-        
-//     }
-
-//     printf("%f\n%f\n%f\n", pos-neg, pos, neg);
-//     if(pos-neg != 0){
-//         printf("É BASE\n");
-//     } else {
-//         printf("NÃO É BASE\n");
-//     }
-// }
+void calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
+    if(linhas == 1 && colunas == 1){
+        double det = matriz[0][0];
+        determinaSeEhBase(linhas, colunas, det, matriz);
+    } else if (linhas == 2 && colunas == 2){
+        double partePositiva, parteNegativa, det;
+        partePositiva = matriz[0][0] * matriz[1][1];
+        parteNegativa = matriz[0][1] * matriz[1][0];
+        det = partePositiva - parteNegativa;
+        determinaSeEhBase(linhas, colunas, det, matriz);
+    } else if (linhas == 3 && colunas == 3){
+        double partePositiva, parteNegativa, det;
+        partePositiva = (matriz[0][0] * matriz[1][1] * matriz[2][2]) + (matriz[0][1] * matriz[1][2] * matriz[2][0]) + (matriz[0][2] * matriz[1][0] * matriz[2][1]);
+        parteNegativa = (matriz[0][2] * matriz[1][1] * matriz[2][0]) + (matriz[0][0] * matriz[1][2] * matriz[2][1]) + (matriz[0][1] * matriz[1][0] * matriz[2][2]);
+        det = partePositiva - parteNegativa;
+        determinaSeEhBase(linhas, colunas, det, matriz);
+    } else {
+        printf("Ainda não conseguimos resolver matrizes maiores do que 3x3.\nNos desculpe... =(\n");
+    }
+}
 
 int main() {
     double matriz[3][3] = {
-        {4, 5, -3},
-        {2, 1, 0},
-        {3, -1, 1}
+        {0, 0, 0},
+        {0, 0, 0},
+        {0, 0, 0}
     };
 
     // escalonaPorGauss(3, 4, matriz);
@@ -145,7 +106,7 @@ int main() {
     // printaResolucaoSistema(3, sistemaResolvido);
     // free(sistemaResolvido);
     
-    determinaBase(3, 3, matriz);
+    calculaDeterminante(3, 3, matriz);
 
     return 0;
 }
