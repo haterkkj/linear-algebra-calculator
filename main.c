@@ -58,10 +58,10 @@ void printaMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
     }
 }
 
-void determinaSeEhBase(int linhas, int colunas, double det, double matriz[linhas][colunas]){
+void determinaSeEhBase(int linhas, int colunas, double determinante, double matriz[linhas][colunas]){
     printf("A matriz:\n");
     printaMatriz(linhas, colunas, matriz);
-    if(det != 0){
+    if(determinante != 0){
         printf("É base.");
     } else {
         printf("Não é base.");
