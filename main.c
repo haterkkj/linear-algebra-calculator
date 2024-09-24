@@ -10,7 +10,8 @@ int printaMenu(){
     printf("3. Determinação de Bases\n");
     printf("4. Cálculo de Autovalores e Autovetores\n");
     printf("5. Diagonalização de Matrizes\n");
-    printf("6. Sair\n");
+    printf("6. Histórico\n");
+    printf("7. Sair\n");
     printf("- - - - - - - - - - - - - - - - - - - - -\n");
     printf("> O que deseja fazer? ");
     
@@ -112,16 +113,6 @@ double* resolveSistemaLinear(int linhas, int colunas, double matriz[linhas][colu
     return variaveis;
 }
 
-void determinaSeEhBase(int linhas, int colunas, double determinante, double matriz[linhas][colunas]){
-    printf("Os conjuntos:\n");
-    printaConjuntoDeVetores(linhas, colunas, matriz);
-    if(determinante != 0){
-        printf("Formam base de R%d.\n", linhas);
-    } else {
-        printf("Não formam uma base de R%d.\n", linhas);
-    }
-}
-
 double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
     double det;
     if(linhas == 1){
@@ -142,7 +133,48 @@ double calculaDeterminante(int linhas, int colunas, double matriz[linhas][coluna
     return det;
 }
 
-int main() {  
+void printaMatrizNoArquivo(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    fprintf(arquivo, "\n");
+    for(int i = 0; i < linhas; i++){
+        for(int j = 0; j < colunas; j++){
+            fprintf(arquivo, "%f ", matriz[i][j]);
+        }
+        fprintf(arquivo, "\n");
+    }
+}
+
+void printaResolucaoSistemaNoArquivo(FILE *arquivo, int dimensao, double* sistemaResolvido){
+    fprintf(arquivo, "\n");
+    char letrasDimensoes[3] = {'x', 'y', 'z'};
+    for(int i = 0; i < dimensao; i++){
+        fprintf(arquivo, "%c = %f\t", letrasDimensoes[i], sistemaResolvido[i]);
+    }
+    fprintf(arquivo, "\n");
+}
+
+void printaConjuntoDeVetoresNoArquivo(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    for(int i = 0; i < linhas; i++){
+        fprintf(arquivo, "v%d = (", i+1);
+        for(int j = 0; j < colunas; j++){
+            if(j == colunas-1){
+                fprintf(arquivo, "%f)", matriz[i][j]);
+            } else {
+                fprintf(arquivo, "%f, ", matriz[i][j]);
+            }
+        }
+        fprintf(arquivo, "\n");
+    }
+}
+
+int main() {    
+    const char *nomearquivotxt = "../historico.txt";
+    FILE *arquivotxt = fopen(nomearquivotxt, "a");
+    if (arquivotxt == NULL){
+        printf("Houve um erro ao abrir o arquivo de histórico, tente reabrir o programa.\n");
+        printf("Encerrando...");
+        return 0;
+    }   
+ 
     while(1){
         int entrada;
         entrada = printaMenu();
@@ -150,12 +182,23 @@ int main() {
             case 1:
                 printf("Deseja operar com matriz 2x2 ou 3x3?\n1. 2x2\n2. 3x3\n> Escolha uma das opções: ");
                 int tamanhoMatriz;
+                arquivotxt = fopen(nomearquivotxt, "a");
                 scanf("%d", &tamanhoMatriz);
+
+                fprintf(arquivotxt, "\n===========================================================\n");
+                fprintf(arquivotxt, "\n> Opção escolhida:\n\t1. Resolução de Sistemas Lineares\n");
+
                 if(tamanhoMatriz == 1){
                     double matriz[2][3];
                     system("cls");
                     lerMatriz(2, 3, matriz);
                     system("cls");
+                    
+                    printf("Matriz original:\n");
+                    printaMatriz(2, 3, matriz);
+                    fprintf(arquivotxt, "\nMatriz original: \n");
+                    printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
+
                     double det = calculaDeterminante(2, 3, matriz);
                     if(det == 0){
                         printf("Está matriz não pode ser escalonada.\n");
@@ -163,16 +206,19 @@ int main() {
                         break;
                     }
 
-                    printf("Matriz original:\n");
-                    printaMatriz(2, 3, matriz);
-                    
                     printf("\nMatriz escalonada:\n");
                     escalonaPorGauss(2, 3, matriz);
                     printaMatriz(2, 3, matriz);
+                    fprintf(arquivotxt, "\nMatriz escalonada: \n");
+                    printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
 
                     printf("\nResolução do sistema:\n");
                     double *variaveis = resolveSistemaLinear(2, 3, matriz);
                     printaResolucaoSistema(2, variaveis);
+
+                    fprintf(arquivotxt, "\nResolução do sistema:\n");
+                    printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
+
                     free(variaveis);
                 } else if (tamanhoMatriz == 2){
                     double matriz[3][4];
@@ -180,7 +226,10 @@ int main() {
                     lerMatriz(3, 4, matriz);
                     system("cls");
                     double det = calculaDeterminante(3, 4, matriz);
-                    printf("%lf\n\n", det);
+
+                    fprintf(arquivotxt, "\nMatriz original: \n");
+                    printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
+
                     if(det == 0){
                         printf("Está matriz não pode ser escalonada.\n");
                         printf("Motivo: dependência linear.\n");
@@ -194,16 +243,27 @@ int main() {
                     escalonaPorGauss(3, 4, matriz);
                     printaMatriz(3, 4, matriz);
 
+                    fprintf(arquivotxt, "\nMatriz escalonada:\n");
+                    printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
+
                     printf("\nResolução do sistema:\n");
                     double *variaveis = resolveSistemaLinear(3, 4, matriz);
                     printaResolucaoSistema(3, variaveis);
+
+                    fprintf(arquivotxt, "\nResolução do sistema:\n");
+                    printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
+
                     free(variaveis);
                 } else {
                     system("cls");
                     printf("Opção Inválida.\n");
                 }
+                fclose(arquivotxt);
                 break;
             case 2:
+                arquivotxt = fopen(nomearquivotxt, "a");
+                fprintf(arquivotxt, "\n===========================================================\n");
+                fprintf(arquivotxt, "\n> Opção escolhida:\n\t2. Verificação de Injetividade, Sobrejetividade e Bijetividade\n");
                 printf("Deseja verificar uma matriz 2x2 ou 3x3?\n1. 2x2\n2. 3x3\n> Escolha uma das opções: ");
                 int dimensaoMatrizQuadrada;
                 scanf("%d", &dimensaoMatrizQuadrada);
@@ -214,6 +274,10 @@ int main() {
                     system("cls");
 
                     double det = calculaDeterminante(2, 2, matriz);
+                    
+                    fprintf(arquivotxt, "\nA matriz:\n");
+                    printaMatrizNoArquivo(arquivotxt, 2, 2, matriz);
+
                     printf("A matriz: \n");
                     printaMatriz(2, 2, matriz);
                     printf("\n");
@@ -221,10 +285,18 @@ int main() {
                         printf("É injetora;\n");
                         printf("É sobrejetora;\n");
                         printf("É bijetora.\n");
+
+                        fprintf(arquivotxt, "É injetora;\n");
+                        fprintf(arquivotxt, "É sobrejetora;\n");
+                        fprintf(arquivotxt, "É bijetora.\n");
                     } else {
                         printf("Não é injetora;\n");
                         printf("Não é sobrejetora;\n");
                         printf("Não é bijetora.\n");
+
+                        fprintf(arquivotxt, "Não é injetora;\n");
+                        fprintf(arquivotxt, "Não é sobrejetora;\n");
+                        fprintf(arquivotxt, "Não é bijetora.\n");
                     }
                 } else if (dimensaoMatrizQuadrada == 2){
                     double matriz[3][3];
@@ -233,6 +305,10 @@ int main() {
                     system("cls");
 
                     double det = calculaDeterminante(3, 3, matriz);
+
+                    fprintf(arquivotxt, "\nA matriz:\n");
+                    printaMatrizNoArquivo(arquivotxt, 3, 3, matriz);
+
                     printf("A matriz: \n");
                     printaMatriz(3, 3, matriz);
                     printf("\n");
@@ -240,17 +316,30 @@ int main() {
                         printf("É injetora;\n");
                         printf("É sobrejetora;\n");
                         printf("É bijetora.\n");
+
+                        fprintf(arquivotxt, "É injetora;\n");
+                        fprintf(arquivotxt, "É sobrejetora;\n");
+                        fprintf(arquivotxt, "É bijetora.\n");
                     } else {
                         printf("Não é injetora;\n");
                         printf("Não é sobrejetora;\n");
                         printf("Não é bijetora.\n");
+
+                        fprintf(arquivotxt, "Não é injetora;\n");
+                        fprintf(arquivotxt, "Não é sobrejetora;\n");
+                        fprintf(arquivotxt, "Não é bijetora.\n");
                     }
                 } else {
                     system("cls");
                     printf("Opção Inválida.\n");
                 }
+                fclose(arquivotxt);
                 break;
             case 3:
+                arquivotxt = fopen(nomearquivotxt, "a");
+                fprintf(arquivotxt, "\n===========================================================\n");
+                fprintf(arquivotxt, "\n> Opção escolhida:\n\t3. Determinação de Bases\n");
+
                 printf("Irá determinar uma base em R2 ou R3?\n1. R2\n2. R3\n> Escolha uma das opções: ");
                 int dimensao;
                 scanf("%d", &dimensao);
@@ -259,25 +348,45 @@ int main() {
                     system("cls");
                     lerConjuntoDeVetores(2, 2, matriz);
                     system("cls");
+
                     double det = calculaDeterminante(2, 2, matriz);
-                    determinaSeEhBase(2, 2, det, matriz);
+                    printaConjuntoDeVetores(2, 2, matriz);
+                    printaConjuntoDeVetoresNoArquivo(arquivotxt, 2, 2, matriz);
+                    if(det != 0){
+                        printf("Formam base de R2.\n");
+                        fprintf(arquivotxt, "Formam base de R2.\n");
+                    } else {
+                        printf("Não formam base de R2\n");
+                        fprintf(arquivotxt, "Não formam base de R2\n");
+                    }
                 } else if (dimensao == 2){
                     double matriz[3][3];
                     system("cls");
                     lerConjuntoDeVetores(3, 3, matriz);
                     system("cls");
                     double det = calculaDeterminante(3, 3, matriz);
-                    determinaSeEhBase(3, 3, det, matriz);
+                    printaConjuntoDeVetores(3, 3, matriz);
+                    printaConjuntoDeVetoresNoArquivo(arquivotxt, 3, 3, matriz);
+                    if(det != 0){
+                        printf("Formam base de R3.\n");
+                        fprintf(arquivotxt, "Formam base de R3.\n");
+                    } else {
+                        printf("Não formam base de R3\n");
+                        fprintf(arquivotxt, "Não formam base de R3\n");
+                    }
                 } else {
                     system("cls");
                     printf("Opção Inválida.\n");
                 }
+                fclose(arquivotxt);
                 break;
             case 4:
                 break;
             case 5:
                 break;
             case 6:
+                break;
+            case 7:
                 system("cls");
                 printf("Muito obrigado por usar nosso programa! =D\n"); 
                 printf("Encerrando...");
