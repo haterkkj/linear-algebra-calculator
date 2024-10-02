@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 int printaMenu(){
     printf("- - - - - - - - - - - - - - - - - - - - -\n");
@@ -164,6 +165,68 @@ void printaConjuntoDeVetoresNoArquivo(FILE *arquivo, int linhas, int colunas, do
         }
         fprintf(arquivo, "\n");
     }
+}
+void resolveSistema2x2(FILE *arquivo, double matriz[2][3]){
+    double autovetor[2] = {0};
+    
+    if (matriz[1][0] == 0 && matriz[1][1] == 0){
+        if(matriz[0][0] == -matriz[1][0] || matriz[1][0] == -matriz[0][0]){
+            autovetor[0] = 1;
+            autovetor[1] = 1;
+        } else {
+            autovetor[1] = 1;
+            autovetor[0] = -matriz[0][1] / matriz[0][0] * autovetor[1];
+        }
+    } else if (matriz[0][0] > 0) {
+        autovetor[1] = 1;
+        autovetor[0] = -matriz[0][1] / matriz[0][0];
+    } else if (matriz[1][0] > 0) {
+        autovetor[1] = 1;  // Assumimos x2 = 1
+        autovetor[0] = -matriz[1][1] / matriz[1][0];
+    }
+
+    printf("[%lf, %lf]\n", autovetor[0], autovetor[1]);
+    fprintf(arquivo, "[%lf, %lf]\n", autovetor[0], autovetor[1]);
+}
+
+void calcularAutovalorAutovetorMatriz2x2(FILE *arquivo, double matriz[2][2]){
+    double a = matriz[0][0];
+    double b = matriz[0][1];
+    double c = matriz[1][0];
+    double d = matriz[1][1];
+
+    double traco = a + d;
+    double det = a * d - b * c;
+
+    double discriminante = sqrt(traco * traco - 4 * det);
+
+    double lambda1 = (traco + discriminante) / 2;
+    double lambda2 = (traco - discriminante) / 2;
+
+    printf("Autovalor 1: %lf\nAutovalor 2: %lf\n\n", lambda1, lambda2);
+    fprintf(arquivo, "Autovalor 1: %lf\nAutovalor 2: %lf\n\n", lambda1, lambda2);
+
+    double matrizNova1[2][3] = {
+        {matriz[0][0] - lambda1, matriz[1][0], 0.0},
+        {matriz[1][0], matriz[1][1] - lambda1, 0.0}
+    };
+    double matrizNova2[2][3] = {
+        {matriz[0][0] - lambda2, matriz[1][0], 0.0},
+        {matriz[1][0], matriz[1][1] - lambda2, 0.0}
+    };
+
+    escalonaPorGauss(2, 3, matrizNova1);
+    escalonaPorGauss(2, 3, matrizNova2);
+    printf("Autovetor 1 para Autovalor 1 = %.2lf:\n", lambda1);
+    fprintf(arquivo, "Autovetor 1 para Autovalor 1 = %.2lf:\n", lambda1);
+    resolveSistema2x2(arquivo, matrizNova1);
+    printf("\n");
+    fprintf(arquivo, "\n");
+    printf("Autovetor 2 para Autovalor 2 = %.2lf:\n", lambda2);
+    fprintf(arquivo, "Autovetor 2 para Autovalor 2 = %.2lf:\n", lambda2);
+    resolveSistema2x2(arquivo, matrizNova2);
+    printf("\n");
+    fprintf(arquivo, "\n");
 }
 
 int main() {    
@@ -381,6 +444,21 @@ int main() {
                 fclose(arquivotxt);
                 break;
             case 4:
+                arquivotxt = fopen(nomearquivotxt, "a");
+
+                fprintf(arquivotxt, "\n===========================================================\n");
+                fprintf(arquivotxt, "\n> Opção escolhida:\n\t4. Cálculo de Autovalores e Autovetores\n\n");
+
+                double matriz[2][2];
+                lerMatriz(2, 2, matriz);
+
+                fprintf(arquivotxt, "Matriz de entrada:\n");
+                printaMatrizNoArquivo(arquivotxt, 2, 2, matriz);
+                fprintf(arquivotxt, "\n");
+
+                calcularAutovalorAutovetorMatriz2x2(arquivotxt, matriz);
+
+                fclose(arquivotxt);        
                 break;
             case 5:
                 break;
@@ -401,5 +479,3 @@ int main() {
     }
     return 0;
 }
-
-
