@@ -21,6 +21,26 @@ int printaMenu(){
     return entrada;
 }
 
+double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
+    double det;
+    if(linhas == 1){
+        det = matriz[0][0];
+    } else if (linhas == 2){
+        double partePositiva, parteNegativa;
+        partePositiva = matriz[0][0] * matriz[1][1];
+        parteNegativa = matriz[0][1] * matriz[1][0];
+        det = partePositiva - parteNegativa;
+    } else if (linhas == 3){
+        double partePositiva, parteNegativa;
+        partePositiva = (matriz[0][0] * matriz[1][1] * matriz[2][2]) + (matriz[0][1] * matriz[1][2] * matriz[2][0]) + (matriz[0][2] * matriz[1][0] * matriz[2][1]);
+        parteNegativa = (matriz[0][2] * matriz[1][1] * matriz[2][0]) + (matriz[0][0] * matriz[1][2] * matriz[2][1]) + (matriz[0][1] * matriz[1][0] * matriz[2][2]);
+        det = partePositiva - parteNegativa;
+    } else {
+        printf("Ainda não conseguimos resolver matrizes maiores do que 3x3.\nNos desculpe... =(\n");
+    }
+    return det;
+}
+
 void printaMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
     for(int i = 0; i < linhas; i++){
         for(int j = 0; j < colunas; j++){
@@ -102,36 +122,49 @@ double* resolveSistemaLinear(int linhas, int colunas, double matriz[linhas][colu
         printf("Houve um erro ao tentar alocar memória para espaço das variáveis :: CODIGO ERRO {00x}\n");
         exit(1);
     }
-    for(int i = linhas-1; i >= 0; i--){
-        variaveis[i] = matriz[i][colunas-1];
-        if(i < linhas - 1){
-            for(int j = linhas; j > i; j--){
-                variaveis[i] -= matriz[i][j] * variaveis[j];
+    double det = calculaDeterminante(linhas, colunas, matriz);
+    if(det = 0){
+        // resolveremos no print
+    } else {
+        for(int i = linhas-1; i >= 0; i--){
+            variaveis[i] = matriz[i][colunas-1];
+            if(i < linhas - 1){
+                for(int j = linhas; j > i; j--){
+                    variaveis[i] -= matriz[i][j] * variaveis[j];
+                }
             }
-        }
-        variaveis[i]/=matriz[i][i];
+            variaveis[i]/=matriz[i][i];
+        }   
     }
+
+    
     return variaveis;
 }
 
-double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
-    double det;
-    if(linhas == 1){
-        det = matriz[0][0];
-    } else if (linhas == 2){
-        double partePositiva, parteNegativa;
-        partePositiva = matriz[0][0] * matriz[1][1];
-        parteNegativa = matriz[0][1] * matriz[1][0];
-        det = partePositiva - parteNegativa;
-    } else if (linhas == 3){
-        double partePositiva, parteNegativa;
-        partePositiva = (matriz[0][0] * matriz[1][1] * matriz[2][2]) + (matriz[0][1] * matriz[1][2] * matriz[2][0]) + (matriz[0][2] * matriz[1][0] * matriz[2][1]);
-        parteNegativa = (matriz[0][2] * matriz[1][1] * matriz[2][0]) + (matriz[0][0] * matriz[1][2] * matriz[2][1]) + (matriz[0][1] * matriz[1][0] * matriz[2][2]);
-        det = partePositiva - parteNegativa;
-    } else {
-        printf("Ainda não conseguimos resolver matrizes maiores do que 3x3.\nNos desculpe... =(\n");
+void resolveSistemaDependenciaLinear(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    char letras[2] = {'y', 'z'};
+    int idx = 0;
+    printf("x = (%.2f", matriz[0][colunas-1]);
+    fprintf(arquivo, "x = (%.2f", matriz[0][colunas-1]);
+    for(int i = 1; i < colunas-1; i++){
+        if(matriz[0][i] > 0.0){
+            printf(" - %.2f%c", matriz[0][i], letras[idx]);
+            fprintf(arquivo, " - %.2f%c", matriz[0][i], letras[idx]);
+        } else {
+            printf(" + %.2f%c", matriz[0][i], letras[idx]);
+            fprintf(arquivo, " + %.2f%c", matriz[0][i], letras[idx]);
+        }
+        idx++;
     }
-    return det;
+    if(matriz[0][0] > 1){
+        printf(") / %.2f", matriz[0][0]);
+        fprintf(arquivo, ") / %.2f", matriz[0][0]);
+    } else {
+        printf(")");
+        fprintf(arquivo, ")");
+    }
+    printf("\n");
+    fprintf(arquivo, "\n");
 }
 
 void printaMatrizNoArquivo(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
@@ -169,22 +202,7 @@ void printaConjuntoDeVetoresNoArquivo(FILE *arquivo, int linhas, int colunas, do
 void resolveSistema2x2(FILE *arquivo, double matriz[2][3]){
     double autovetor[2] = {0};
     
-    if (matriz[1][0] == 0 && matriz[1][1] == 0){
-        if(matriz[0][0] == -matriz[1][0] || matriz[1][0] == -matriz[0][0]){
-            autovetor[0] = 1;
-            autovetor[1] = 1;
-        } else {
-            autovetor[1] = 1;
-            autovetor[0] = -matriz[0][1] / matriz[0][0] * autovetor[1];
-        }
-    } else if (matriz[0][0] > 0) {
-        autovetor[1] = 1;
-        autovetor[0] = -matriz[0][1] / matriz[0][0];
-    } else if (matriz[1][0] > 0) {
-        autovetor[1] = 1;  // Assumimos x2 = 1
-        autovetor[0] = -matriz[1][1] / matriz[1][0];
-    }
-
+    
     printf("[%lf, %lf]\n", autovetor[0], autovetor[1]);
     fprintf(arquivo, "[%lf, %lf]\n", autovetor[0], autovetor[1]);
 }
@@ -262,12 +280,7 @@ int main() {
                     fprintf(arquivotxt, "\nMatriz original: \n");
                     printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
 
-                    double det = calculaDeterminante(2, 3, matriz);
-                    if(det == 0){
-                        printf("Está matriz não pode ser escalonada.\n");
-                        printf("Motivo: dependência linear.\n");
-                        break;
-                    }
+                    
 
                     printf("\nMatriz escalonada:\n");
                     escalonaPorGauss(2, 3, matriz);
@@ -276,28 +289,26 @@ int main() {
                     printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
 
                     printf("\nResolução do sistema:\n");
-                    double *variaveis = resolveSistemaLinear(2, 3, matriz);
-                    printaResolucaoSistema(2, variaveis);
 
-                    fprintf(arquivotxt, "\nResolução do sistema:\n");
-                    printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
+                    double det = calculaDeterminante(2, 3, matriz);
 
-                    free(variaveis);
+                    if(det == 0){
+                        resolveSistemaDependenciaLinear(arquivotxt, 2, 3, matriz);
+                    } else {
+                        double *variaveis = resolveSistemaLinear(2, 3, matriz);
+                        printaResolucaoSistema(2, variaveis);
+
+                        fprintf(arquivotxt, "\nResolução do sistema:\n");
+                        printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
+                        free(variaveis);
+                    }
                 } else if (tamanhoMatriz == 2){
                     double matriz[3][4];
                     system("cls");
                     lerMatriz(3, 4, matriz);
                     system("cls");
-                    double det = calculaDeterminante(3, 4, matriz);
-
                     fprintf(arquivotxt, "\nMatriz original: \n");
                     printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
-
-                    if(det == 0){
-                        printf("Está matriz não pode ser escalonada.\n");
-                        printf("Motivo: dependência linear.\n");
-                        break;
-                    }
 
                     printf("Matriz original:\n");
                     printaMatriz(3, 4, matriz);
@@ -310,13 +321,18 @@ int main() {
                     printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
 
                     printf("\nResolução do sistema:\n");
-                    double *variaveis = resolveSistemaLinear(3, 4, matriz);
-                    printaResolucaoSistema(3, variaveis);
+                    
+                    double det = calculaDeterminante(3, 4, matriz);
+                    if(det == 0){
+                        resolveSistemaDependenciaLinear(arquivotxt, 3, 4, matriz);
+                    } else {
+                        double *variaveis = resolveSistemaLinear(3, 4, matriz);
+                        printaResolucaoSistema(3, variaveis);
 
-                    fprintf(arquivotxt, "\nResolução do sistema:\n");
-                    printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
-
-                    free(variaveis);
+                        fprintf(arquivotxt, "\nResolução do sistema:\n");
+                        printaResolucaoSistemaNoArquivo(arquivotxt, 3, variaveis);
+                        free(variaveis);
+                    }
                 } else {
                     system("cls");
                     printf("Opção Inválida.\n");
