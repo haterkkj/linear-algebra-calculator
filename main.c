@@ -21,231 +21,16 @@ int printaMenu(){
     return entrada;
 }
 
-double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
-    double det;
-    if(linhas == 1){
-        det = matriz[0][0];
-    } else if (linhas == 2){
-        double partePositiva, parteNegativa;
-        partePositiva = matriz[0][0] * matriz[1][1];
-        parteNegativa = matriz[0][1] * matriz[1][0];
-        det = partePositiva - parteNegativa;
-    } else if (linhas == 3){
-        double partePositiva, parteNegativa;
-        partePositiva = (matriz[0][0] * matriz[1][1] * matriz[2][2]) + (matriz[0][1] * matriz[1][2] * matriz[2][0]) + (matriz[0][2] * matriz[1][0] * matriz[2][1]);
-        parteNegativa = (matriz[0][2] * matriz[1][1] * matriz[2][0]) + (matriz[0][0] * matriz[1][2] * matriz[2][1]) + (matriz[0][1] * matriz[1][0] * matriz[2][2]);
-        det = partePositiva - parteNegativa;
-    } else {
-        printf("Ainda não conseguimos resolver matrizes maiores do que 3x3.\nNos desculpe... =(\n");
-    }
-    return det;
-}
-
-void printaMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
-    for(int i = 0; i < linhas; i++){
-        for(int j = 0; j < colunas; j++){
-            printf("%f ", matriz[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void printaConjuntoDeVetores(int linhas, int colunas, double matriz[linhas][colunas]){
-    for(int i = 0; i < linhas; i++){
-        printf("v%d = (", i+1);
-        for(int j = 0; j < colunas; j++){
-            if(j == colunas-1){
-                printf("%f)", matriz[i][j]);
-            } else {
-                printf("%f, ", matriz[i][j]);
-            }
-        }
-        printf("\n");
-    }
-}
-
-void printaResolucaoSistema(int dimensao, double* sistemaResolvido){
-    char letrasDimensoes[3] = {'x', 'y', 'z'};
-    for(int i = 0; i < dimensao; i++){
-        printf("%c = %f\t", letrasDimensoes[i], sistemaResolvido[i]);
-    }
-    printf("\n");
-}
-
-void lerMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
-    printf("> Insira os elementos da matriz: (informe apenas os coeficientes e a constante)\n");
-    printf("Ex.: 2x+3y-z=5 -> 2 3 -1 5\n");
-    for(int i = 0; i < linhas; i++){
-        for(int j = 0; j < colunas; j++){
-            scanf("%lf", &matriz[i][j]);
-        }
-    }
-}
-
-void lerConjuntoDeVetores(int linhas, int colunas, double matriz[linhas][colunas]){
-    for(int i = 0; i < linhas; i++){
-        printf("> Insira os elementos do %d° conjunto de vetores: (informe apenas números)\n", i+1);
-        printf("Ex.: (2, 3, 4) -> 2 3 4\n");
-        for(int j = 0; j < colunas; j++){
-            scanf("%lf", &matriz[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void escalonaPorGauss(int linhas, int colunas, double matriz[linhas][colunas]){
-    for(int j = 0; j < colunas-2; j++){
-        for(int i = j; i < linhas; i++){
-            if(matriz[i][j] != 0){
-                if(i != j){
-                    for(int k = 0; k < colunas; k++){
-                        double temp = matriz[i][k];
-                        matriz[i][k] = matriz[j][k];
-                        matriz[j][k] = temp;
-                    }
-                }
-                for(int m = j + 1; m < linhas; m++){
-                    double fatorEliminacao = -matriz[m][j] / matriz[j][j];
-                    for(int n = j; n < colunas; n++){
-                        matriz[m][n] = (fatorEliminacao * matriz[j][n]) + matriz[m][n] ;
-                    }
-                }
-                break;
-            }
-        }
-    }
-}
-
-double* resolveSistemaLinear(int linhas, int colunas, double matriz[linhas][colunas]){
-    double* variaveis = (double*)calloc(linhas, sizeof(double));
-    if (variaveis == NULL) {
-        printf("Houve um erro ao tentar alocar memória para espaço das variáveis :: CODIGO ERRO {00x}\n");
-        exit(1);
-    }
-    double det = calculaDeterminante(linhas, colunas, matriz);
-    if(det = 0){
-        // resolveremos no print
-    } else {
-        for(int i = linhas-1; i >= 0; i--){
-            variaveis[i] = matriz[i][colunas-1];
-            if(i < linhas - 1){
-                for(int j = linhas; j > i; j--){
-                    variaveis[i] -= matriz[i][j] * variaveis[j];
-                }
-            }
-            variaveis[i]/=matriz[i][i];
-        }   
-    }
-
-    
-    return variaveis;
-}
-
-void resolveSistemaDependenciaLinear(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
-    char letras[2] = {'y', 'z'};
-    int idx = 0;
-    printf("x = (%.2f", matriz[0][colunas-1]);
-    fprintf(arquivo, "x = (%.2f", matriz[0][colunas-1]);
-    for(int i = 1; i < colunas-1; i++){
-        if(matriz[0][i] > 0.0){
-            printf(" - %.2f%c", matriz[0][i], letras[idx]);
-            fprintf(arquivo, " - %.2f%c", matriz[0][i], letras[idx]);
-        } else {
-            printf(" + %.2f%c", matriz[0][i], letras[idx]);
-            fprintf(arquivo, " + %.2f%c", matriz[0][i], letras[idx]);
-        }
-        idx++;
-    }
-    if(matriz[0][0] > 1){
-        printf(") / %.2f", matriz[0][0]);
-        fprintf(arquivo, ") / %.2f", matriz[0][0]);
-    } else {
-        printf(")");
-        fprintf(arquivo, ")");
-    }
-    printf("\n");
-    fprintf(arquivo, "\n");
-}
-
-void printaMatrizNoArquivo(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
-    fprintf(arquivo, "\n");
-    for(int i = 0; i < linhas; i++){
-        for(int j = 0; j < colunas; j++){
-            fprintf(arquivo, "%f ", matriz[i][j]);
-        }
-        fprintf(arquivo, "\n");
-    }
-}
-
-void printaResolucaoSistemaNoArquivo(FILE *arquivo, int dimensao, double* sistemaResolvido){
-    fprintf(arquivo, "\n");
-    char letrasDimensoes[3] = {'x', 'y', 'z'};
-    for(int i = 0; i < dimensao; i++){
-        fprintf(arquivo, "%c = %f\t", letrasDimensoes[i], sistemaResolvido[i]);
-    }
-    fprintf(arquivo, "\n");
-}
-
-void printaConjuntoDeVetoresNoArquivo(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
-    for(int i = 0; i < linhas; i++){
-        fprintf(arquivo, "v%d = (", i+1);
-        for(int j = 0; j < colunas; j++){
-            if(j == colunas-1){
-                fprintf(arquivo, "%f)", matriz[i][j]);
-            } else {
-                fprintf(arquivo, "%f, ", matriz[i][j]);
-            }
-        }
-        fprintf(arquivo, "\n");
-    }
-}
-void resolveSistema2x2(FILE *arquivo, double matriz[2][3]){
-    double autovetor[2] = {0};
-    
-    
-    printf("[%lf, %lf]\n", autovetor[0], autovetor[1]);
-    fprintf(arquivo, "[%lf, %lf]\n", autovetor[0], autovetor[1]);
-}
-
-void calcularAutovalorAutovetorMatriz2x2(FILE *arquivo, double matriz[2][2]){
-    double a = matriz[0][0];
-    double b = matriz[0][1];
-    double c = matriz[1][0];
-    double d = matriz[1][1];
-
-    double traco = a + d;
-    double det = a * d - b * c;
-
-    double discriminante = sqrt(traco * traco - 4 * det);
-
-    double lambda1 = (traco + discriminante) / 2;
-    double lambda2 = (traco - discriminante) / 2;
-
-    printf("Autovalor 1: %lf\nAutovalor 2: %lf\n\n", lambda1, lambda2);
-    fprintf(arquivo, "Autovalor 1: %lf\nAutovalor 2: %lf\n\n", lambda1, lambda2);
-
-    double matrizNova1[2][3] = {
-        {matriz[0][0] - lambda1, matriz[1][0], 0.0},
-        {matriz[1][0], matriz[1][1] - lambda1, 0.0}
-    };
-    double matrizNova2[2][3] = {
-        {matriz[0][0] - lambda2, matriz[1][0], 0.0},
-        {matriz[1][0], matriz[1][1] - lambda2, 0.0}
-    };
-
-    escalonaPorGauss(2, 3, matrizNova1);
-    escalonaPorGauss(2, 3, matrizNova2);
-    printf("Autovetor 1 para Autovalor 1 = %.2lf:\n", lambda1);
-    fprintf(arquivo, "Autovetor 1 para Autovalor 1 = %.2lf:\n", lambda1);
-    resolveSistema2x2(arquivo, matrizNova1);
-    printf("\n");
-    fprintf(arquivo, "\n");
-    printf("Autovetor 2 para Autovalor 2 = %.2lf:\n", lambda2);
-    fprintf(arquivo, "Autovetor 2 para Autovalor 2 = %.2lf:\n", lambda2);
-    resolveSistema2x2(arquivo, matrizNova2);
-    printf("\n");
-    fprintf(arquivo, "\n");
-}
+double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]);
+void printaMatriz(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]);
+void printaConjuntoDeVetores(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]);
+void printaResolucaoSistema(FILE *arquivo, int dimensao, double* sistemaResolvido);
+void lerMatriz(int linhas, int colunas, double matriz[linhas][colunas]);
+void lerConjuntoDeVetores(int linhas, int colunas, double matriz[linhas][colunas]);
+void escalonaPorGauss(int linhas, int colunas, double matriz[linhas][colunas]);
+double* resolveSistemaLinear(int linhas, int colunas, double matriz[linhas][colunas]);
+void resolveSistemaDependenciaLinear(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]);
+void calcularAutovalorAutovetorMatriz2x2(FILE *arquivo, double matriz[2][2]);
 
 int main() {    
     const char *nomearquivotxt = "../historico.txt";
@@ -276,30 +61,23 @@ int main() {
                     system("cls");
                     
                     printf("Matriz original:\n");
-                    printaMatriz(2, 3, matriz);
                     fprintf(arquivotxt, "\nMatriz original: \n");
-                    printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
-
+                    printaMatriz(arquivotxt, 2, 3, matriz);
                     
 
                     printf("\nMatriz escalonada:\n");
-                    escalonaPorGauss(2, 3, matriz);
-                    printaMatriz(2, 3, matriz);
                     fprintf(arquivotxt, "\nMatriz escalonada: \n");
-                    printaMatrizNoArquivo(arquivotxt, 2, 3, matriz);
+                    escalonaPorGauss(2, 3, matriz);
+                    printaMatriz(arquivotxt, 2, 3, matriz);
 
                     printf("\nResolução do sistema:\n");
-
+                    fprintf(arquivotxt, "\nResolução do sistema:\n");
                     double det = calculaDeterminante(2, 3, matriz);
-
                     if(det == 0){
                         resolveSistemaDependenciaLinear(arquivotxt, 2, 3, matriz);
                     } else {
                         double *variaveis = resolveSistemaLinear(2, 3, matriz);
-                        printaResolucaoSistema(2, variaveis);
-
-                        fprintf(arquivotxt, "\nResolução do sistema:\n");
-                        printaResolucaoSistemaNoArquivo(arquivotxt, 2, variaveis);
+                        printaResolucaoSistema(arquivotxt, 2, variaveis);
                         free(variaveis);
                     }
                 } else if (tamanhoMatriz == 2){
@@ -307,30 +85,24 @@ int main() {
                     system("cls");
                     lerMatriz(3, 4, matriz);
                     system("cls");
-                    fprintf(arquivotxt, "\nMatriz original: \n");
-                    printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
-
+                    
                     printf("Matriz original:\n");
-                    printaMatriz(3, 4, matriz);
+                    fprintf(arquivotxt, "\nMatriz original: \n");
+                    printaMatriz(arquivotxt, 3, 4, matriz);
 
                     printf("\nMatriz escalonada:\n");
-                    escalonaPorGauss(3, 4, matriz);
-                    printaMatriz(3, 4, matriz);
-
                     fprintf(arquivotxt, "\nMatriz escalonada:\n");
-                    printaMatrizNoArquivo(arquivotxt, 3, 4, matriz);
+                    escalonaPorGauss(3, 4, matriz);
+                    printaMatriz(arquivotxt, 3, 4, matriz);
 
                     printf("\nResolução do sistema:\n");
-                    
+                    fprintf(arquivotxt, "\nResolução do sistema:\n");
                     double det = calculaDeterminante(3, 4, matriz);
                     if(det == 0){
                         resolveSistemaDependenciaLinear(arquivotxt, 3, 4, matriz);
                     } else {
                         double *variaveis = resolveSistemaLinear(3, 4, matriz);
-                        printaResolucaoSistema(3, variaveis);
-
-                        fprintf(arquivotxt, "\nResolução do sistema:\n");
-                        printaResolucaoSistemaNoArquivo(arquivotxt, 3, variaveis);
+                        printaResolucaoSistema(arquivotxt, 3, variaveis);
                         free(variaveis);
                     }
                 } else {
@@ -354,12 +126,11 @@ int main() {
 
                     double det = calculaDeterminante(2, 2, matriz);
                     
-                    fprintf(arquivotxt, "\nA matriz:\n");
-                    printaMatrizNoArquivo(arquivotxt, 2, 2, matriz);
-
                     printf("A matriz: \n");
-                    printaMatriz(2, 2, matriz);
+                    fprintf(arquivotxt, "\nA matriz:\n");
+                    printaMatriz(arquivotxt, 2, 2, matriz);
                     printf("\n");
+                    fprintf(arquivotxt, "\n");
                     if(det != 0){
                         printf("É injetora;\n");
                         printf("É sobrejetora;\n");
@@ -385,12 +156,11 @@ int main() {
 
                     double det = calculaDeterminante(3, 3, matriz);
 
-                    fprintf(arquivotxt, "\nA matriz:\n");
-                    printaMatrizNoArquivo(arquivotxt, 3, 3, matriz);
-
                     printf("A matriz: \n");
-                    printaMatriz(3, 3, matriz);
+                    fprintf(arquivotxt, "\nA matriz:\n");
+                    printaMatriz(arquivotxt, 3, 3, matriz);
                     printf("\n");
+                    fprintf(arquivotxt, "\n");
                     if(det != 0){
                         printf("É injetora;\n");
                         printf("É sobrejetora;\n");
@@ -429,8 +199,7 @@ int main() {
                     system("cls");
 
                     double det = calculaDeterminante(2, 2, matriz);
-                    printaConjuntoDeVetores(2, 2, matriz);
-                    printaConjuntoDeVetoresNoArquivo(arquivotxt, 2, 2, matriz);
+                    printaConjuntoDeVetores(arquivotxt, 2, 2, matriz);
                     if(det != 0){
                         printf("Formam base de R2.\n");
                         fprintf(arquivotxt, "Formam base de R2.\n");
@@ -444,8 +213,7 @@ int main() {
                     lerConjuntoDeVetores(3, 3, matriz);
                     system("cls");
                     double det = calculaDeterminante(3, 3, matriz);
-                    printaConjuntoDeVetores(3, 3, matriz);
-                    printaConjuntoDeVetoresNoArquivo(arquivotxt, 3, 3, matriz);
+                    printaConjuntoDeVetores(arquivotxt, 3, 3, matriz);
                     if(det != 0){
                         printf("Formam base de R3.\n");
                         fprintf(arquivotxt, "Formam base de R3.\n");
@@ -467,9 +235,11 @@ int main() {
 
                 double matriz[2][2];
                 lerMatriz(2, 2, matriz);
-
+                
+                printf("Matriz de entrada:\n");
                 fprintf(arquivotxt, "Matriz de entrada:\n");
-                printaMatrizNoArquivo(arquivotxt, 2, 2, matriz);
+                printaMatriz(arquivotxt, 2, 2, matriz);
+                printf("\n");
                 fprintf(arquivotxt, "\n");
 
                 calcularAutovalorAutovetorMatriz2x2(arquivotxt, matriz);
@@ -494,4 +264,215 @@ int main() {
         getchar();
     }
     return 0;
+}
+
+
+double calculaDeterminante(int linhas, int colunas, double matriz[linhas][colunas]){
+    double det;
+    if(linhas == 1){
+        det = matriz[0][0];
+    } else if (linhas == 2){
+        double partePositiva, parteNegativa;
+        partePositiva = matriz[0][0] * matriz[1][1];
+        parteNegativa = matriz[0][1] * matriz[1][0];
+        det = partePositiva - parteNegativa;
+    } else if (linhas == 3){
+        double partePositiva, parteNegativa;
+        partePositiva = (matriz[0][0] * matriz[1][1] * matriz[2][2]) + (matriz[0][1] * matriz[1][2] * matriz[2][0]) + (matriz[0][2] * matriz[1][0] * matriz[2][1]);
+        parteNegativa = (matriz[0][2] * matriz[1][1] * matriz[2][0]) + (matriz[0][0] * matriz[1][2] * matriz[2][1]) + (matriz[0][1] * matriz[1][0] * matriz[2][2]);
+        det = partePositiva - parteNegativa;
+    } else {
+        printf("Ainda não conseguimos resolver matrizes maiores do que 3x3.\nNos desculpe... =(\n");
+    }
+    return det;
+}
+
+void printaMatriz(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    fprintf(arquivo, "\n");
+    for(int i = 0; i < linhas; i++){
+        for(int j = 0; j < colunas; j++){
+            printf("%f ", matriz[i][j]);
+            fprintf(arquivo, "%f ", matriz[i][j]);
+        }
+        printf("\n");
+        fprintf(arquivo, "\n");
+    }
+}
+
+void printaConjuntoDeVetores(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    for(int i = 0; i < linhas; i++){
+        printf("v%d = (", i+1);
+        fprintf(arquivo, "v%d = (", i+1);
+        for(int j = 0; j < colunas; j++){
+            if(j == colunas-1){
+                printf("%f)", matriz[i][j]);
+                fprintf(arquivo, "%f)", matriz[i][j]);
+            } else {
+                printf("%f, ", matriz[i][j]);
+                fprintf(arquivo, "%f, ", matriz[i][j]);
+            }
+        }
+        printf("\n");
+        fprintf(arquivo, "\n");
+    }
+}
+
+void printaResolucaoSistema(FILE *arquivo, int dimensao, double* sistemaResolvido){
+    char letrasDimensoes[3] = {'x', 'y', 'z'};
+    fprintf(arquivo, "\n");
+    for(int i = 0; i < dimensao; i++){
+        printf("%c = %f\t", letrasDimensoes[i], sistemaResolvido[i]);
+        fprintf(arquivo, "%c = %f\t", letrasDimensoes[i], sistemaResolvido[i]);
+    }
+    fprintf(arquivo, "\n");
+    printf("\n");
+}
+
+void lerMatriz(int linhas, int colunas, double matriz[linhas][colunas]){
+    printf("> Insira os elementos da matriz: (informe apenas os coeficientes e a constante)\n");
+    printf("Ex.: 2x+3y-z=5 -> 2 3 -1 5\n");
+    for(int i = 0; i < linhas; i++){
+        for(int j = 0; j < colunas; j++){
+            scanf("%lf", &matriz[i][j]);
+        }
+    }
+}
+
+void lerConjuntoDeVetores(int linhas, int colunas, double matriz[linhas][colunas]){
+    for(int i = 0; i < linhas; i++){
+        printf("> Insira os elementos do vetor n°%d: (informe apenas números)\n", i+1);
+        printf("Ex.: (2, 3, 4) -> 2 3 4\n");
+        for(int j = 0; j < colunas; j++){
+            scanf("%lf", &matriz[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void escalonaPorGauss(int linhas, int colunas, double matriz[linhas][colunas]){
+    for(int j = 0; j < colunas-2; j++){
+        for(int i = j; i < linhas; i++){
+            if(matriz[i][j] != 0){
+                if(i != j){
+                    for(int k = 0; k < colunas; k++){
+                        double temp = matriz[i][k];
+                        matriz[i][k] = matriz[j][k];
+                        matriz[j][k] = temp;
+                    }
+                }
+                for(int m = j + 1; m < linhas; m++){
+                    double fatorEliminacao = -matriz[m][j] / matriz[j][j];
+                    for(int n = j; n < colunas; n++){
+                        matriz[m][n] = (fatorEliminacao * matriz[j][n]) + matriz[m][n] ;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+double* resolveSistemaLinear(int linhas, int colunas, double matriz[linhas][colunas]){
+    double* variaveis = (double*)calloc(linhas, sizeof(double));
+    if (variaveis == NULL) {
+        printf("Houve um erro ao tentar alocar memória para espaço das variáveis :: CODIGO ERRO {00x}\n");
+        exit(1);
+    }
+    double det = calculaDeterminante(linhas, colunas, matriz);
+    if(det == 0){
+        // resolveremos no print
+    } else {
+        for(int i = linhas-1; i >= 0; i--){
+            variaveis[i] = matriz[i][colunas-1];
+            if(i < linhas - 1){
+                for(int j = linhas; j > i; j--){
+                    variaveis[i] -= matriz[i][j] * variaveis[j];
+                }
+            }
+            variaveis[i]/=matriz[i][i];
+        }   
+    }
+    return variaveis;
+}
+
+void resolveSistemaDependenciaLinear(FILE *arquivo, int linhas, int colunas, double matriz[linhas][colunas]){
+    char letras[2] = {'y', 'z'};
+    int idx = 0;
+    printf("x = (%.2f", matriz[0][colunas-1]);
+    fprintf(arquivo, "x = (%.2f", matriz[0][colunas-1]);
+    for(int i = 1; i < colunas-1; i++){
+        if(matriz[0][i] > 0.0){
+            printf(" - %.2f%c", matriz[0][i], letras[idx]);
+            fprintf(arquivo, " - %.2f%c", matriz[0][i], letras[idx]);
+        } else {
+            printf(" + %.2f%c", matriz[0][i], letras[idx]);
+            fprintf(arquivo, " + %.2f%c", matriz[0][i], letras[idx]);
+        }
+        idx++;
+    }
+    if(matriz[0][0] > 1){
+        printf(") / %.2f", matriz[0][0]);
+        fprintf(arquivo, ") / %.2f", matriz[0][0]);
+    } else {
+        printf(")");
+        fprintf(arquivo, ")");
+    }
+    printf("\n");
+    fprintf(arquivo, "\n");
+}
+
+void calcularAutovalorAutovetorMatriz2x2(FILE *arquivo, double matriz[2][2]){
+    double a = matriz[0][0];
+    double b = matriz[0][1];
+    double c = matriz[1][0];
+    double d = matriz[1][1];
+
+    double traco = a + d;
+    double det = a * d - b * c;
+
+    double discriminante = traco * traco - 4 * det;
+    if(discriminante < 0){
+        printf("Infelizmente não suportamos autovalores complexos...\n");
+        fprintf(arquivo, "Infelizmente não suportamos autovalores complexos...\n");
+        return;
+    }
+    discriminante = sqrt(discriminante);
+
+    double lambda1 = (traco + discriminante) / 2;
+    double lambda2 = (traco - discriminante) / 2;
+
+    printf("Autovalores:\nλ1 = %lf\nλ2 = %lf\n\n", lambda1, lambda2);
+    fprintf(arquivo, "Autovalores:\nλ1 = %lf\nλ2 = %lf\n\n", lambda1, lambda2);
+
+    if (b != 0) {
+        printf("Autovetor correspondente a λ1 = %.2f: ", lambda1);
+        fprintf(arquivo, "Autovetor correspondente a λ1 = %.2f: ", lambda1);
+        float v1_x = 1; // Podemos escolher x = 1
+        float v1_y = (lambda1 - a) / b; // Resolvendo para y
+        printf("(%.2f, %.2f)\n", v1_x, v1_y);
+        fprintf(arquivo, "(%.2f, %.2f)\n", v1_x, v1_y);
+    } else if (a != lambda1) {
+        printf("Autovetor correspondente a λ1 = %.2f: ", lambda1);
+        fprintf(arquivo, "Autovetor correspondente a λ1 = %.2f: ", lambda1);
+        float v1_x = 0; 
+        float v1_y = 1; 
+        printf("(%.2f, %.2f)\n", v1_x, v1_y);
+        fprintf(arquivo, "(%.2f, %.2f)\n", v1_x, v1_y);
+    }
+
+    if (b != 0) {
+        printf("Autovetor correspondente a λ2 = %.2f: ", lambda2);
+        fprintf(arquivo, "Autovetor correspondente a λ2 = %.2f: ", lambda2);
+        float v2_x = 1; // Podemos escolher x = 1
+        float v2_y = (lambda2 - a) / b; // Resolvendo para y
+        printf("(%.2f, %.2f)\n", v2_x, v2_y);
+        fprintf(arquivo, "(%.2f, %.2f)\n", v2_x, v2_y);
+    } else if (a != lambda2) {
+        printf("Autovetor correspondente a λ2 = %.2f: ", lambda2);
+        fprintf(arquivo, "Autovetor correspondente a λ2 = %.2f: ", lambda2);
+        float v2_x = 0; 
+        float v2_y = 1; 
+        printf("(%.2f, %.2f)\n", v2_x, v2_y);
+        fprintf(arquivo, "(%.2f, %.2f)\n", v2_x, v2_y);
+    }
 }
